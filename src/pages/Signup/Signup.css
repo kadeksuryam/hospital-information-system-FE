@@ -1,14 +1,15 @@
-.login-container{
+.signup-container{
     display: flex;
     justify-content: center;
 }
 
-.login-form{
+.signup-form{
     flex: 0.4 1 auto;
     margin-left: 1rem;
     margin-right: 1rem;
     margin-top: 15vh;
     padding: 3rem 4rem;
     border-style: double;
-    border-radius: 1rem;
+    border-radius: 1rem;    
 }
+
