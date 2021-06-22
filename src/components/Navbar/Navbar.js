@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import './Navbar.css'
 
 const NavbarC = () => (
-    <Navbar collapseOnSelect expand="sm" bg="dark" variant="dark">
+    <Navbar sticky="top" collapseOnSelect expand="sm" bg="dark" variant="dark">
         <Container fluid>
             <Navbar.Brand as={Link} to='/'>Hospital Service</Navbar.Brand>
             <Navbar.Toggle aria-controls="responsive-navbar-nav" />
