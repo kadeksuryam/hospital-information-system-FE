@@ -9,9 +9,30 @@ const Login = () => {
     const [form, setForm] = useState({})
     const [errors, setErrors] = useState({})
 
+    /* Field Error Finder */
+    const errorFinder = () => {
+        const { email, password } = form
+        const newErrors = {}
+
+        /* Email field errors*/
+        if(!email || email === '') newErrors.email = "Please provide an email."
+        else if(!validator.email.regex.test(email)) {
+            newErrors.email = validator.email.errMsg
+        }
+
+        /* Password fields errors */
+        if(!password || password === '') newErrors.password = "Please provide a password."
+        else if(!validator.password.regex.test(password)){
+            newErrors.password = validator.password.errMsg
+        }
+
+        return newErrors
+    }
+ 
+    /* Validate everytime input fields change, after form has validated  */
     useEffect(() => {
         if(validated){
-            const newErrors = findFormErrors()
+            const newErrors = errorFinder(form)
             if(Object.keys(newErrors).length > 0){
                 setErrors(newErrors)
             }
@@ -28,26 +49,7 @@ const Login = () => {
         if(!!errors[field]) setErrors({...errors, [field]: null})
     }
 
-    /* Field Error Finder */
-    const findFormErrors = () => {
-        const { email, password } = form
-        const newErrors = {}
-
-        /* Email field errors*/
-        if(!email || email === '') newErrors.email = "Please provide an email."
-        else if(!validator.email.regex.test(email)) {
-            newErrors.email = validator.email.errMsg
-        }
-
-        /* Password fields errors */
-        if(!password || password == '') newErrors.password = "Please provide a password."
-        else if(!validator.password.regex.test(password)){
-            newErrors.password = validator.password.errMsg
-        }
-
-        return newErrors
-    }
-
+    /* Submit Handler, Calls APIs */
     const handleSubmit = (event) => {
         event.preventDefault()
         setValidated(true)
