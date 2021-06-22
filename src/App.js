@@ -3,6 +3,7 @@ import Login from './pages/Login/Login.js'
 import Signup from './pages/Signup/Signup.js'
 import NavbarC from './components/Navbar/Navbar.js'
 import Appointment from './pages/Appointment/Appointment.js'
+import Home from './pages/Home/Home.js'
 
 const App = () => {
   return(
@@ -19,6 +20,7 @@ const App = () => {
             <Signup />
           </Route>
           <Route path="/">
+            <Home />
           </Route>
        </Switch>
      </Router>    
