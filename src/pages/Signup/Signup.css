@@ -10,6 +10,7 @@
     margin-top: 15vh;
     padding: 3rem 4rem;
     border-style: double;
-    border-radius: 1rem;    
+    border-radius: 1rem;
+    box-shadow: 5px 5px 8px #888888; 
 }
 

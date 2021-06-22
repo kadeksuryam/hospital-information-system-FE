@@ -1,4 +1,4 @@
-.login-container{
+.login-form-container{
     display: flex;
     justify-content: center;
 }
@@ -7,8 +7,29 @@
     flex: 0.4 1 auto;
     margin-left: 1rem;
     margin-right: 1rem;
-    margin-top: 15vh;
+    margin-top: 5vh;
     padding: 3rem 4rem;
     border-style: double;
     border-radius: 1rem;
+    box-shadow: 5px 5px 8px #888888; 
+}
+
+.login-banner{
+    flex-direction: column;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    padding-top: 3vh;
+}
+
+.login-banner-title{
+    font-family: Raleway;
+    font-size: 3rem;
+    color : black;
+    font-weight: bolder;
+}
+
+.login-banner-content{
+    font-family: Raleway;
+    font-size: 2rem;
+    color: black;
 }
