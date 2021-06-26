@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { Form, Button, Toast, Spinner } from 'react-bootstrap'
-import { Link } from 'react-router-dom'
+import { Link,  useHistory } from 'react-router-dom'
 import validator from '../../utils/validation'
 import './Login.css'
 
@@ -27,12 +27,13 @@ const errorFinder = (form) => {
     return newErrors
 }
 
-const Login = () => {
+const Login = ({isLoggedIn, setIsLoggedIn}) => {
     const [errorBackend, setErrorBackend] = useState("")
     const [toggleErrorBackend, setToggleErrorBackend] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [form, setForm] = useState({})
-    const [errors, setErrors] = useState({})
+    const [errors, setErrors] = useState({});
+    const history = useHistory()
 
     /* Field State Handler*/
     const setField = (field, value) => {
@@ -73,9 +74,13 @@ const Login = () => {
             const URL = "http://192.168.1.24:5000/api/login"
             try{
                 const resSignIn = await axios.post(URL, {email: form.email, password: form.password })
-                console.log(resSignIn)
+                localStorage.setItem("JWT_token", resSignIn.data.token)
+                localStorage.setItem("authUserID", resSignIn.data.authUserID)
+                localStorage.setItem("userType", resSignIn.data.authUserID)
             } catch(err){
-                setErrorBackend(err.response.data.error)
+                console.log(err.message)
+                if(err.response) setErrorBackend(err.response.data.error)
+                else setErrorBackend(err.message)
             }
         }
         setIsLoading(false)
@@ -84,7 +89,14 @@ const Login = () => {
     useEffect(() => {
         //as an effect no errors, submit the form
         if(isLoading){
-            submitTheForm()
+            const submit = async () => {
+                await submitTheForm()
+                if(localStorage.getItem('JWT_token')){
+                    history.push('/doctors')
+                    setIsLoggedIn(true)
+                }   
+            }
+            submit()
         }
     }, [isLoading])
 
@@ -97,17 +109,20 @@ const Login = () => {
         setErrorBackend("")
     }
 
-    console.log(errorBackend)
+    useEffect(() =>{
+        if(isLoggedIn) history.push('/')
+    },[])
+
     return(
         <div>
             <div className="login-banner">
-                <div className="login-banner-title">Sign In</div>
+                <div className="login-banner-title">Log In</div>
                 <div className="login-banner-content">Before proceeding, please enter your email and password</div>
             </div>
 
             <div className="login-form-container">
                 <Form noValidate className="login-form">
-                    <Toast show={toggleErrorBackend} onClose={handleToggleErrorBackend}>
+                    <Toast show={toggleErrorBackend} style={{margin: '0 auto'}} onClose={handleToggleErrorBackend}>
                         <Toast.Header>
                         <strong className="mr-auto" style={{color: 'red'}}>Error</strong>
                         </Toast.Header>

@@ -1,0 +1,9 @@
+.appointment-list-container{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content:flex-start;
+}
+
+.appointment-list{
+    margin: 1rem;
+}

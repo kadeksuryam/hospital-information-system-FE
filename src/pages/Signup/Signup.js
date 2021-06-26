@@ -1,49 +1,43 @@
+import axios from 'axios'
 import { useState, useEffect } from 'react'
-import { Form, Button, Col } from 'react-bootstrap'
+import { Form, Button, Col, Spinner, Toast } from 'react-bootstrap'
 import validator from '../../utils/validation'
 import './Signup.css'
 
+let isValidated = false
+
+/* Field Error Finder */
+const errorFinder = (form) => {
+    const { firstName, age, email, password } = form
+    const newErrors = {}
+    /* First Name errors*/
+    if(!firstName || firstName === '') newErrors.firstName = "First name can't be empty."
+
+    /* Age errors */
+    if(!age || age === '') newErrors.age = "Age can't be empty"
+    else if(age <= 0) newErrors.age = "Please provide valid age"
+
+    /* Email field errors*/
+    if(!email || email === '') newErrors.email = "Please provide an email."
+    else if(!validator.email.regex.test(email)) {
+        newErrors.email = validator.email.errMsg
+    }
+
+    /* Password fields errors */
+    if(!password || password === '') newErrors.password = "Please provide a password."
+    else if(!validator.password.regex.test(password)){
+        newErrors.password = validator.password.errMsg
+    }
+
+    return newErrors
+}
+
 const Signup = () => {
-    const [validated, setValidated] = useState(false)
+    const [errorBackend, setErrorBackend] = useState("")
+    const [toggleErrorBackend, setToggleErrorBackend] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
     const [form, setForm] = useState({})
     const [errors, setErrors] = useState({})
-
-    /* Field Error Finder */
-    const errorFinder = () => {
-        const {firstName, age, email, password } = form
-        const newErrors = {}
-        
-        /* First Name errors*/
-        if(!firstName || firstName === '') newErrors.firstName = "First name can't be empty"
-
-        /* Age errors */
-        if(!age || age === '') newErrors.age = "Age can't be empty"
-        else if(age <= 0) newErrors.age = "Please provide valid age" 
-
-        /* Email field errors*/
-        if(!email || email === '') newErrors.email = "Please provide an email."
-        else if(!validator.email.regex.test(email)) {
-            newErrors.email = validator.email.errMsg
-        }
-
-        /* Password fields errors */
-        if(!password || password === '') newErrors.password = "Please provide a password."
-        else if(!validator.password.regex.test(password)){
-            newErrors.password = validator.password.errMsg
-        }
-
-        return newErrors
-    }
- 
-    /* Validate everytime input fields change, after form has validated  */
-    useEffect(() => {
-        if(validated){
-            const newErrors = errorFinder(form)
-            if(Object.keys(newErrors).length > 0){
-                setErrors(newErrors)
-            }
-        }
-    }, [form, validated])
 
     /* Field State Handler*/
     const setField = (field, value) => {
@@ -51,26 +45,83 @@ const Signup = () => {
             ...form,
             [field] : value
         })
-
         if(!!errors[field]) setErrors({...errors, [field]: null})
     }
 
-    /* Submit Handler, Calls APIs */
+    /* Validate everytime input fields change, after form has isValidated  */
+    useEffect(() => {
+        if(isValidated){
+            const newErrors = errorFinder(form)
+            if(Object.keys(newErrors).length > 0){
+                setErrors(newErrors)
+            }
+        }
+    }, [form])
+    
+    /* Submit Button Handler */
     const handleSubmit = (event) => {
         event.preventDefault()
-        setValidated(true)
-    }   
+        const newErrors = errorFinder(form)
+        isValidated = true
+        if(Object.keys(newErrors).length > 0){
+            setErrors(newErrors)
+        }
+        else{
+            setIsLoading(true)
+        }
+    }
+
+    /* API CALL */
+    const submitTheForm = async () => {
+        setTimeout(() => {}, 3000);
+        if(isValidated){
+            const URL = "http://192.168.1.24:5000/api/login"
+            try{
+                const resSignIn = await axios.post(URL, {email: form.email, password: form.password })
+                console.log(resSignIn)
+            } catch(err){
+                setErrorBackend(err.response.data.error)
+            }
+        }
+        setIsLoading(false)
+    }
+
+    useEffect(() => {
+        //as an effect no errors, submit the form
+        if(isLoading){
+            submitTheForm()
+        }
+    }, [isLoading])
+
+    useEffect(() => {
+        if(errorBackend !== "") setToggleErrorBackend(true)
+        else setToggleErrorBackend(false)
+    }, [errorBackend])
+
+    const handleToggleErrorBackend = () => {
+        setErrorBackend("")
+    }
+
+    console.log(errorBackend)  
 
     return (
         <div>
         <div className='signup-container'>
-            <Form noValidate onSubmit={handleSubmit} className='signup-form'>
+            <Form noValidate className='signup-form'>
+                {/* Notification Card */}
+                <Toast show={toggleErrorBackend} onClose={handleToggleErrorBackend}>
+                    <Toast.Header>
+                    <strong className="mr-auto" style={{color: 'red'}}>Error</strong>
+                    </Toast.Header>
+                    <Toast.Body>{errorBackend}</Toast.Body>
+                </Toast>
+
                 <Form.Row>
                     {/* First Name Field */}
                     <Form.Group as={Col} controlId="formGridFirstName">
                         <Form.Label>First Name</Form.Label>
                         <Form.Control type="text" placeholder="First name"
-                            isInvalid={!!errors.firstName} isValid={!errors.firstName && validated}
+                            isInvalid={!!errors.firstName} isValid={!errors.firstName && isValidated}
                             onChange={e => setField("firstName", e.target.value)}  />
                         <Form.Control.Feedback type="invalid">
                                {errors.firstName}
@@ -84,7 +135,7 @@ const Signup = () => {
                     <Form.Group as={Col} controlId="formGridLastName">
                         <Form.Label>Last Name</Form.Label>
                         <Form.Control type="text" placeholder="Last name"
-                            isInvalid={!!errors.lastName} isValid={!errors.lastName && validated}
+                            isInvalid={!!errors.lastName} isValid={!errors.lastName && isValidated}
                             onChange={e => setField("lastName", e.target.value)}  />
                         <Form.Control.Feedback type="invalid">
                                {errors.lastName}
@@ -99,7 +150,7 @@ const Signup = () => {
                 <Form.Group>
                     <Form.Label>Age</Form.Label>
                     <Form.Control type="number" placeholder="Age"
-                        isInvalid={!!errors.age} isValid={!errors.age && validated}
+                        isInvalid={!!errors.age} isValid={!errors.age && isValidated}
                         onChange={e => setField("age", e.target.value)} />
                     <Form.Control.Feedback type="invalid">
                             {errors.age}
@@ -113,7 +164,7 @@ const Signup = () => {
                 <Form.Group>
                     <Form.Label>Email</Form.Label>
                     <Form.Control type="email" placeholder="Email"
-                        isInvalid={!!errors.email} isValid={!errors.email && validated}
+                        isInvalid={!!errors.email} isValid={!errors.email && isValidated}
                         onChange={e => setField("email", e.target.value)} />
                         <Form.Control.Feedback type="invalid">
                                {errors.email}
@@ -127,7 +178,7 @@ const Signup = () => {
                 <Form.Group>
                     <Form.Label>Password</Form.Label>
                     <Form.Control type="password" placeholder="Password"
-                        isInvalid={!!errors.password} isValid={!errors.password && validated}
+                        isInvalid={!!errors.password} isValid={!errors.password && isValidated}
                         onChange={e => setField("password", e.target.value)} />
                     <Form.Control.Feedback type="invalid">
                             {errors.password}
@@ -137,8 +188,24 @@ const Signup = () => {
                     </Form.Control.Feedback>
                 </Form.Group>
                 
-                <Button variant="outline-primary" type="submit">
-                        Sign Up
+                {/* Submit Button */}
+                <Button variant="outline-primary" 
+                    disabled={isLoading}
+                    onClick={!isLoading ? handleSubmit : null}
+                    type="submit">
+                    {isLoading ?
+                        (
+                            <Spinner
+                                as="span"
+                                animation="border"
+                                size="sm"
+                                role="status"
+                                aria-hidden="true"
+                            />
+                        ) : <></>
+                    }
+                    {isLoading 
+                        ? 'Submitting...' : 'Sign Up'}
                 </Button>
             </Form>
         </div>
