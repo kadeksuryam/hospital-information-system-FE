@@ -8,22 +8,30 @@ import Home from './pages/Home/Home.js'
 import Doctor from './pages/Doctor/Doctor.js'
 import { useState, useEffect } from 'react'
 
+const checkLoggedIn = () => {
+  const token = localStorage.getItem('JWT_token')
+  const authUserID = localStorage.getItem('authUserID')
+  const userType = localStorage.getItem('userType')
+
+  if(token && authUserID && userType){
+    return true
+  }
+  return false
+}
+
 const App = () => {
+  
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
-    const token = localStorage.getItem('JWT_token')
-    const authUserID = localStorage.getItem('authUserID')
-    const userType = localStorage.getItem('userType')
-
-    if(token && authUserID && userType){
+    if(checkLoggedIn()){
       setIsLoggedIn(true)
-    }
+    } 
   },[])
 
   return(
      <Router>
-       <NavbarC isLoggedIn={isLoggedIn}/>
+       <NavbarC isLoggedIn={isLoggedIn} />
        <Switch>
           <Route path="/doctors">
             <Doctor/>
@@ -32,13 +40,13 @@ const App = () => {
             <Appointment />
           </Route>
           <Route path="/login">
-            <Login isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn}/>
+            <Login setIsLoggedIn={setIsLoggedIn} checkLoggedIn={checkLoggedIn}/>
           </Route>
           <Route path="/logout">
-            <Logout setIsLoggedIn={setIsLoggedIn} />
+            <Logout setIsLoggedIn={setIsLoggedIn}/>
           </Route>
           <Route path="/signup">
-            <Signup />
+            <Signup setIsLoggedIn={setIsLoggedIn} checkLoggedIn={checkLoggedIn} />
           </Route>
           <Route path="/">
             <Home />

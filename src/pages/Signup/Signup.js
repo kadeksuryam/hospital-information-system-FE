@@ -1,10 +1,9 @@
 import axios from 'axios'
 import { useState, useEffect } from 'react'
+import { useHistory } from 'react-router-dom'
 import { Form, Button, Col, Spinner, Toast } from 'react-bootstrap'
 import validator from '../../utils/validation'
 import './Signup.css'
-
-let isValidated = false
 
 /* Field Error Finder */
 const errorFinder = (form) => {
@@ -32,12 +31,14 @@ const errorFinder = (form) => {
     return newErrors
 }
 
-const Signup = () => {
+const Signup = ({setIsLoggedIn, checkLoggedIn}) => {
     const [errorBackend, setErrorBackend] = useState("")
     const [toggleErrorBackend, setToggleErrorBackend] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [form, setForm] = useState({})
     const [errors, setErrors] = useState({})
+    const [isValidated, setIsValidated] = useState(false)
+    const history = useHistory()
 
     /* Field State Handler*/
     const setField = (field, value) => {
@@ -62,7 +63,7 @@ const Signup = () => {
     const handleSubmit = (event) => {
         event.preventDefault()
         const newErrors = errorFinder(form)
-        isValidated = true
+        setIsValidated(true)
         if(Object.keys(newErrors).length > 0){
             setErrors(newErrors)
         }
@@ -73,15 +74,24 @@ const Signup = () => {
 
     /* API CALL */
     const submitTheForm = async () => {
-        setTimeout(() => {}, 3000);
         if(isValidated){
-            const URL = "http://192.168.1.24:5000/api/login"
+            const { firstName, lastName, age, email, password } = form
             try{
-                const resSignIn = await axios.post(URL, {email: form.email, password: form.password })
-                console.log(resSignIn)
+                //Sign Up
+                const signupURL = "http://192.168.1.24:5000/api/patients"
+                const resSignUp = await axios.post(signupURL, {firstName, lastName, age, email, password})
+
+                localStorage.setItem("JWT_token", resSignUp.data.token)
+                localStorage.setItem("authUserID", resSignUp.data.authUserID)
+                localStorage.setItem("userType", resSignUp.data.userType)
+
             } catch(err){
-                setErrorBackend(err.response.data.error)
+                if(err.response) setErrorBackend(err.response.data.error)
+                else setErrorBackend(err.message)
             }
+        }
+        if(checkLoggedIn()){
+            setIsValidated(false)
         }
         setIsLoading(false)
     }
@@ -89,7 +99,14 @@ const Signup = () => {
     useEffect(() => {
         //as an effect no errors, submit the form
         if(isLoading){
-            submitTheForm()
+            const submit = async () => {
+                await submitTheForm()
+                if(checkLoggedIn()){
+                    history.push('/doctors')
+                    setIsLoggedIn(true)
+                }
+            }
+            submit()
         }
     }, [isLoading])
 
@@ -100,115 +117,124 @@ const Signup = () => {
 
     const handleToggleErrorBackend = () => {
         setErrorBackend("")
-    }
+    }  
 
-    console.log(errorBackend)  
+    useEffect(() =>{
+        if(checkLoggedIn()){
+            history.push('/doctors')
+            setIsLoggedIn(true)
+        }
+    },[])
 
     return (
         <div>
-        <div className='signup-container'>
-            <Form noValidate className='signup-form'>
-                {/* Notification Card */}
-                <Toast show={toggleErrorBackend} onClose={handleToggleErrorBackend}>
-                    <Toast.Header>
-                    <strong className="mr-auto" style={{color: 'red'}}>Error</strong>
-                    </Toast.Header>
-                    <Toast.Body>{errorBackend}</Toast.Body>
-                </Toast>
+            <div className="signup-banner">
+                <div className="signup-banner-title">Sign Up</div>
+                <div className="signup-banner-content">Please fill your personal information to create an account.</div>
+            </div>
+            <div className='signup-container'>
+                <Form noValidate className='signup-form'>
+                    {/* Notification Card */}
+                    <Toast show={toggleErrorBackend} style={{margin: '0 auto'}} onClose={handleToggleErrorBackend} delay={4000} autohide>
+                        <Toast.Header>
+                        <strong className="mr-auto" style={{color: 'red'}}>Error</strong>
+                        </Toast.Header>
+                        <Toast.Body>{errorBackend}</Toast.Body>
+                    </Toast>
 
-                <Form.Row>
-                    {/* First Name Field */}
-                    <Form.Group as={Col} controlId="formGridFirstName">
-                        <Form.Label>First Name</Form.Label>
-                        <Form.Control type="text" placeholder="First name"
-                            isInvalid={!!errors.firstName} isValid={!errors.firstName && isValidated}
-                            onChange={e => setField("firstName", e.target.value)}  />
+                    <Form.Row>
+                        {/* First Name Field */}
+                        <Form.Group as={Col} controlId="formGridFirstName">
+                            <Form.Label>First Name</Form.Label>
+                            <Form.Control type="text" placeholder="First name"
+                                isInvalid={!!errors.firstName} isValid={!errors.firstName && isValidated}
+                                onChange={e => setField("firstName", e.target.value)}  />
+                            <Form.Control.Feedback type="invalid">
+                                {errors.firstName}
+                            </Form.Control.Feedback>
+                            <Form.Control.Feedback type="valid">
+                                Looks good!
+                            </Form.Control.Feedback>
+                        </Form.Group>
+
+                        {/* Last Name Field */}
+                        <Form.Group as={Col} controlId="formGridLastName">
+                            <Form.Label>Last Name</Form.Label>
+                            <Form.Control type="text" placeholder="Last name"
+                                isInvalid={!!errors.lastName} isValid={!errors.lastName && isValidated}
+                                onChange={e => setField("lastName", e.target.value)}  />
+                            <Form.Control.Feedback type="invalid">
+                                {errors.lastName}
+                            </Form.Control.Feedback>
+                            <Form.Control.Feedback type="valid">
+                                Looks good!
+                            </Form.Control.Feedback>
+                        </Form.Group>
+                    </Form.Row>
+
+                    {/* Age Field */}
+                    <Form.Group>
+                        <Form.Label>Age</Form.Label>
+                        <Form.Control type="number" placeholder="Age"
+                            isInvalid={!!errors.age} isValid={!errors.age && isValidated}
+                            onChange={e => setField("age", e.target.value)} />
                         <Form.Control.Feedback type="invalid">
-                               {errors.firstName}
+                                {errors.age}
                         </Form.Control.Feedback>
                         <Form.Control.Feedback type="valid">
-                               Looks good!
+                                Looks good!
                         </Form.Control.Feedback>
                     </Form.Group>
 
-                    {/* Last Name Field */}
-                    <Form.Group as={Col} controlId="formGridLastName">
-                        <Form.Label>Last Name</Form.Label>
-                        <Form.Control type="text" placeholder="Last name"
-                            isInvalid={!!errors.lastName} isValid={!errors.lastName && isValidated}
-                            onChange={e => setField("lastName", e.target.value)}  />
+                    {/* Email Field */}
+                    <Form.Group>
+                        <Form.Label>Email</Form.Label>
+                        <Form.Control type="email" placeholder="Email"
+                            isInvalid={!!errors.email} isValid={!errors.email && isValidated}
+                            onChange={e => setField("email", e.target.value)} />
+                            <Form.Control.Feedback type="invalid">
+                                {errors.email}
+                            </Form.Control.Feedback>
+                            <Form.Control.Feedback type="valid">
+                                Looks good!
+                            </Form.Control.Feedback>
+                    </Form.Group>
+
+                    {/* Password Field */}
+                    <Form.Group>
+                        <Form.Label>Password</Form.Label>
+                        <Form.Control type="password" placeholder="Password"
+                            isInvalid={!!errors.password} isValid={!errors.password && isValidated}
+                            onChange={e => setField("password", e.target.value)} />
                         <Form.Control.Feedback type="invalid">
-                               {errors.lastName}
+                                {errors.password}
                         </Form.Control.Feedback>
                         <Form.Control.Feedback type="valid">
-                               Looks good!
+                                Looks good!
                         </Form.Control.Feedback>
                     </Form.Group>
-                </Form.Row>
-
-                {/* Age Field */}
-                <Form.Group>
-                    <Form.Label>Age</Form.Label>
-                    <Form.Control type="number" placeholder="Age"
-                        isInvalid={!!errors.age} isValid={!errors.age && isValidated}
-                        onChange={e => setField("age", e.target.value)} />
-                    <Form.Control.Feedback type="invalid">
-                            {errors.age}
-                    </Form.Control.Feedback>
-                    <Form.Control.Feedback type="valid">
-                            Looks good!
-                    </Form.Control.Feedback>
-                </Form.Group>
-
-                {/* Email Field */}
-                <Form.Group>
-                    <Form.Label>Email</Form.Label>
-                    <Form.Control type="email" placeholder="Email"
-                        isInvalid={!!errors.email} isValid={!errors.email && isValidated}
-                        onChange={e => setField("email", e.target.value)} />
-                        <Form.Control.Feedback type="invalid">
-                               {errors.email}
-                        </Form.Control.Feedback>
-                        <Form.Control.Feedback type="valid">
-                               Looks good!
-                        </Form.Control.Feedback>
-                </Form.Group>
-
-                {/* Password Field */}
-                <Form.Group>
-                    <Form.Label>Password</Form.Label>
-                    <Form.Control type="password" placeholder="Password"
-                        isInvalid={!!errors.password} isValid={!errors.password && isValidated}
-                        onChange={e => setField("password", e.target.value)} />
-                    <Form.Control.Feedback type="invalid">
-                            {errors.password}
-                    </Form.Control.Feedback>
-                    <Form.Control.Feedback type="valid">
-                            Looks good!
-                    </Form.Control.Feedback>
-                </Form.Group>
-                
-                {/* Submit Button */}
-                <Button variant="outline-primary" 
-                    disabled={isLoading}
-                    onClick={!isLoading ? handleSubmit : null}
-                    type="submit">
-                    {isLoading ?
-                        (
-                            <Spinner
-                                as="span"
-                                animation="border"
-                                size="sm"
-                                role="status"
-                                aria-hidden="true"
-                            />
-                        ) : <></>
-                    }
-                    {isLoading 
-                        ? 'Submitting...' : 'Sign Up'}
-                </Button>
-            </Form>
-        </div>
+                    
+                    {/* Submit Button */}
+                    <Button variant="outline-primary" 
+                        disabled={isLoading}
+                        onClick={!isLoading ? handleSubmit : null}
+                        type="submit">
+                        {isLoading ?
+                            (
+                                <Spinner
+                                    as="span"
+                                    animation="border"
+                                    size="sm"
+                                    role="status"
+                                    aria-hidden="true"
+                                />
+                            ) : <></>
+                        }
+                        {isLoading 
+                            ? 'Submitting...' : 'Sign Up'}
+                    </Button>
+                </Form>
+            </div>
         </div>
     )
 }
