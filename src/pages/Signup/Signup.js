@@ -3,7 +3,9 @@ import { useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { Form, Button, Col, Spinner, Toast } from 'react-bootstrap'
 import validator from '../../utils/validation'
+import { isLogin } from '../../utils/isLogin'
 import './Signup.css'
+import ErrorNotification from '../../components/ErrorNotification'
 
 /* Field Error Finder */
 const errorFinder = (form) => {
@@ -31,7 +33,7 @@ const errorFinder = (form) => {
     return newErrors
 }
 
-const Signup = ({setIsLoggedIn, checkLoggedIn}) => {
+const Signup = ({setIsLoggedIn}) => {
     const [errorBackend, setErrorBackend] = useState("")
     const [toggleErrorBackend, setToggleErrorBackend] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
@@ -90,7 +92,7 @@ const Signup = ({setIsLoggedIn, checkLoggedIn}) => {
                 else setErrorBackend(err.message)
             }
         }
-        if(checkLoggedIn()){
+        if(isLogin()){
             setIsValidated(false)
         }
         setIsLoading(false)
@@ -101,8 +103,7 @@ const Signup = ({setIsLoggedIn, checkLoggedIn}) => {
         if(isLoading){
             const submit = async () => {
                 await submitTheForm()
-                if(checkLoggedIn()){
-                    history.push('/doctors')
+                if(isLogin()){
                     setIsLoggedIn(true)
                 }
             }
@@ -119,13 +120,6 @@ const Signup = ({setIsLoggedIn, checkLoggedIn}) => {
         setErrorBackend("")
     }  
 
-    useEffect(() =>{
-        if(checkLoggedIn()){
-            history.push('/doctors')
-            setIsLoggedIn(true)
-        }
-    },[])
-
     return (
         <div>
             <div className="signup-banner">
@@ -134,13 +128,9 @@ const Signup = ({setIsLoggedIn, checkLoggedIn}) => {
             </div>
             <div className='signup-container'>
                 <Form noValidate className='signup-form'>
-                    {/* Notification Card */}
-                    <Toast show={toggleErrorBackend} style={{margin: '0 auto'}} onClose={handleToggleErrorBackend} delay={4000} autohide>
-                        <Toast.Header>
-                        <strong className="mr-auto" style={{color: 'red'}}>Error</strong>
-                        </Toast.Header>
-                        <Toast.Body>{errorBackend}</Toast.Body>
-                    </Toast>
+                    <ErrorNotification toggleError={toggleErrorBackend}
+                         handleToggleError={handleToggleErrorBackend}
+                         errorMsg = {errorBackend} />
 
                     <Form.Row>
                         {/* First Name Field */}
