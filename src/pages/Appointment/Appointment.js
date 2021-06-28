@@ -9,20 +9,7 @@ const Appointment = () => {
     const history  = useHistory()
     let { doctorID } = useParams()
     const [showEdit, setShowEdit] = useState(false)
-    /*
-    const [appointments, setAppointments] = useState([
-        {
-            "doctorID" : 1,
-            "name" : "Consulting about teeth",
-            "patients" : [
-                "abraham",
-                "emmanuel"
-            ],
-            "desc" : "Every saturday, 1 PM"
-        }
-    ].filter(item => parseInt(item.doctorID) === parseInt(id))) */
     const [appointments, setAppointments] = useState([])
-
     const [editFields, setEditFields] = useState({})
 
     const handleShowEdit = (idx) => {
@@ -32,6 +19,36 @@ const Appointment = () => {
 
     const handleSubmitEdit = () => {
         // API calls
+    }
+
+    const handleApply = async (appointmentID, index) => {
+        const JWT_TOKEN = localStorage.getItem('JWT_token')
+        const headers = {
+            Authorization : 'Bearer ' + JWT_TOKEN
+        }
+        try{
+            let newAppointments = [...appointments]
+            if(!appointments[index].isApplied){
+                const URI = `http://192.168.1.24:5000/api/patient-appointments`
+                const payload = {
+                    "patientID" : localStorage.getItem("authUserID"),
+                    "appointmentID" : appointmentID
+                }
+                await axios.post(URI, payload, {headers: headers})
+                newAppointments[index].isApplied = true
+            }
+            else{
+                const URI = `http://192.168.1.24:5000/api/patient-appointments?appointmentID=${appointmentID}`
+                await axios.delete(URI, {headers: headers})
+                newAppointments[index].isApplied = false
+            }
+
+            setAppointments(newAppointments)
+        } catch(err){
+            if(err.response) alert(err.response.data.error)
+            else alert(err.message)
+        }
+
     }
 
     useEffect(() => {
@@ -44,13 +61,27 @@ const Appointment = () => {
         //Fetch data first time from API
         const getAppointments = async () => {
             try{
-                const URI = `http://192.168.1.24:5000/api/appointments?doctorID=${doctorID}`
+                const URI_Appointments = `http://192.168.1.24:5000/api/appointments?doctorID=${doctorID}`
+                const currUserID = localStorage.getItem("authUserID")
+                const URI_User_Appointments = 
+                    `http://192.168.1.24:5000/api/patient-appointments?patientID=${currUserID}`
+
                 const JWT_TOKEN = localStorage.getItem('JWT_token')
                 const headers = {
                     Authorization : 'Bearer ' + JWT_TOKEN
                 }
-                const res = await axios.get(URI, {headers: headers})
-                setAppointments(res.data)
+                const resAppointments = (await axios.get(URI_Appointments, {headers: headers})).data
+                const resUserAppointments = (await axios.get(URI_User_Appointments, {headers: headers})).data
+                
+
+                for(const appointment of resAppointments){
+                    for(const userAppointment of resUserAppointments){
+                        if(appointment._id === userAppointment.appointmentID){
+                            appointment.isApplied = true
+                        }
+                    }
+                }
+                setAppointments(resAppointments)
             } catch(err){
                if(err.response){
                    //console.log(err.response)
@@ -86,7 +117,15 @@ const Appointment = () => {
                                 </Card.Text>
 
                                 {/* Book the doctor */}
-                                <Button variant="primary">Apply</Button>
+                                {
+                                    (!appointment.isApplied)
+                                    ?
+                                        <Button variant="primary" 
+                                        onClick={() => handleApply(appointment._id, index)}>Apply</Button>
+                                    :
+                                    <Button variant="primary" 
+                                        onClick={() => handleApply(appointment._id, index)}>Cancel</Button>
+                                }
 
                                 {/* Edit doctor - Admin Only */}
                                 <Button variant="primary" onClick={() => handleShowEdit(index)}>Edit</Button>
