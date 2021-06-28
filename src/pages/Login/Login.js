@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Form, Button, Toast, Spinner } from 'react-bootstrap'
 import { Link,  useHistory } from 'react-router-dom'
 import validator from '../../utils/validation'
+import { isLogin } from '../../utils/isLogin'
 import './Login.css'
 
 /* Field Error Finder */
@@ -25,7 +26,7 @@ const errorFinder = (form) => {
     return newErrors
 }
 
-const Login = ({setIsLoggedIn, checkLoggedIn}) => {
+const Login = ({setIsLoggedIn}) => {
     const [errorBackend, setErrorBackend] = useState("")
     const [toggleErrorBackend, setToggleErrorBackend] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
@@ -81,7 +82,7 @@ const Login = ({setIsLoggedIn, checkLoggedIn}) => {
                 else setErrorBackend(err.message)
             }
         }
-        if(checkLoggedIn()){
+        if(isLogin()){
             setIsValidated(false)
         }
         setIsLoading(false)
@@ -92,8 +93,7 @@ const Login = ({setIsLoggedIn, checkLoggedIn}) => {
         if(isLoading){
             const submit = async () => {
                 await submitTheForm()
-                if(checkLoggedIn()){
-                    history.push('/doctors') 
+                if(isLogin()){
                     setIsLoggedIn(true)
                 }
             }
@@ -109,13 +109,6 @@ const Login = ({setIsLoggedIn, checkLoggedIn}) => {
     const handleToggleErrorBackend = () => {
         setErrorBackend("")
     }
-
-    useEffect(() =>{
-        if(checkLoggedIn()){
-            history.push('/doctors')
-            setIsLoggedIn(true)
-        }
-    },[])
 
     return(
         <div>

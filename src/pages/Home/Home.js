@@ -12,7 +12,7 @@ const Home = () => {
                 if you dont have yet, you can create <Link to="/signup">here</Link>
             </div>
             <div className="home-banner-appointment">
-                <Button as={Link} to="/appointment"  variant="primary">List of Appointments</Button>
+                <Button as={Link} to="/doctors" variant="primary">List of Doctors</Button>
             </div>
         </Jumbotron>
     )

@@ -3,10 +3,12 @@ import { useState } from 'react'
 import {Card, Button, Modal, Form} from 'react-bootstrap'
 import { useParams } from 'react-router-dom'
 import "./Appointment.css"
+import axios from 'axios'
 
 const Appointment = () => {
-    let { id } = useParams()
+    let { doctorID } = useParams()
     const [showEdit, setShowEdit] = useState(false)
+    /*
     const [appointments, setAppointments] = useState([
         {
             "doctorID" : 1,
@@ -17,7 +19,8 @@ const Appointment = () => {
             ],
             "desc" : "Every saturday, 1 PM"
         }
-    ].filter(item => parseInt(item.doctorID) === parseInt(id)))
+    ].filter(item => parseInt(item.doctorID) === parseInt(id))) */
+    const [appointments, setAppointments] = useState([])
 
     const [editFields, setEditFields] = useState({})
 
@@ -37,7 +40,23 @@ const Appointment = () => {
     }, [editFields])
 
     useEffect(() => {
-        //Fect data first time from API
+        //Fetch data first time from API
+        const getAppointments = async () => {
+            try{
+                const URI = `http://192.168.1.24:5000/api/appointments?doctorID=${doctorID}`
+                const JWT_TOKEN = localStorage.getItem('JWT_token')
+                const headers = {
+                    Authorization : 'Bearer ' + JWT_TOKEN
+                }
+                const res = await axios({method: 'get', url: URI, headers: headers})
+                
+                setAppointments(res.data)
+
+            } catch(err){
+               console.log(err.message)
+            }
+        }
+        getAppointments()
     }, [])
 
     useEffect(() => {

@@ -1,12 +1,13 @@
+import axios from 'axios'
 import { useEffect } from 'react'
 import { useState } from 'react'
 import {Card, Button, Modal, Form} from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import "./Doctor.css"
 
-const Doctor = ({loggedInData}) => {
-    console.log(loggedInData)
+const Doctor = ({checkIsLoggedIn}) => {
     const [showEdit, setShowEdit] = useState(false)
+    /*
     const [doctors, setDoctors] = useState([
         {
             "id" : 1,
@@ -35,7 +36,23 @@ const Doctor = ({loggedInData}) => {
                 "emmanuel"
             ]
         }
-    ])
+    ]) */
+
+    const [doctors, setDoctors] = useState([])
+    useEffect(() => {
+        const getDoctors = async () => {
+            try{
+                const res = await axios.get('http://192.168.1.24:5000/api/doctors')
+                setDoctors(res.data)       
+            }
+            catch(err){
+                if(err.response) console.log(err.response.data.error)
+                else console.log(err.message)
+            } 
+        }        
+        getDoctors()
+    },[])
+    
     const [editFields, setEditFields] = useState({})
 
 
@@ -71,7 +88,7 @@ const Doctor = ({loggedInData}) => {
                                 </Card.Text>
 
                                 {/* Book the doctor */}
-                                <Button variant="primary" as={Link} to={`/appointments/${doctor.id}`}>
+                                <Button variant="primary" as={Link} to={`/appointments/${doctor._id}`}>
                                     {'>'}{'>'} Available Appointment</Button>
                             </Card.Body>
                         </Card>

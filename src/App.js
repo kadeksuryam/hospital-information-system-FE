@@ -6,51 +6,25 @@ import NavbarC from './components/Navbar/Navbar.js'
 import Appointment from './pages/Appointment/Appointment.js'
 import Home from './pages/Home/Home.js'
 import Doctor from './pages/Doctor/Doctor.js'
-import { useState, useEffect } from 'react'
-
-const checkLoggedIn = () => {
-  const token = localStorage.getItem('JWT_token')
-  const authUserID = localStorage.getItem('authUserID')
-  const userType = localStorage.getItem('userType')
-
-  if(token && authUserID && userType){
-    return true
-  }
-  return false
-}
+import PrivateRoute from './components/PrivateRoute'
+import PublicRoute from './components/PublicRoute'
+import { useState } from 'react'
+import NotFound from './pages/NotFound/NotFound.js'
 
 const App = () => {
-  
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-
-  useEffect(() => {
-    if(checkLoggedIn()){
-      setIsLoggedIn(true)
-    } 
-  },[])
 
   return(
      <Router>
-       <NavbarC isLoggedIn={isLoggedIn} />
+       <NavbarC isLoggedIn={isLoggedIn}/>
        <Switch>
-          <Route path="/doctors">
-            <Doctor/>
-          </Route>
-          <Route path="/appointments/:id">
-            <Appointment />
-          </Route>
-          <Route path="/login">
-            <Login setIsLoggedIn={setIsLoggedIn} checkLoggedIn={checkLoggedIn}/>
-          </Route>
-          <Route path="/logout">
-            <Logout setIsLoggedIn={setIsLoggedIn}/>
-          </Route>
-          <Route path="/signup">
-            <Signup setIsLoggedIn={setIsLoggedIn} checkLoggedIn={checkLoggedIn} />
-          </Route>
-          <Route path="/">
-            <Home />
-          </Route>
+          <PublicRoute restricted={false} component={Home} exact path="/" />
+          <PublicRoute restricted={false} component={Doctor} path="/doctors" />
+          <PrivateRoute component={Appointment} path="/appointments/:doctorID" />
+          <PublicRoute restricted={true} component={Login} setIsLoggedIn={setIsLoggedIn} path="/login"/>
+          <PublicRoute restricted={false} component={Logout}  setIsLoggedIn={setIsLoggedIn} path="/logout" />
+          <PublicRoute restricted={true} component={Signup} path="/signup" setIsLoggedIn={setIsLoggedIn} />
+          <PublicRoute restricted={false} component={NotFound} path="*" />
        </Switch>
      </Router>    
   )

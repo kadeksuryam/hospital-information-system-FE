@@ -1,5 +1,6 @@
 import { Navbar, Container, Nav, Button } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
+import { isLogin } from '../../utils/isLogin'
 import './Navbar.css'
 
 const NavbarC = ({isLoggedIn}) => {
@@ -11,11 +12,11 @@ const NavbarC = ({isLoggedIn}) => {
                 <Navbar.Collapse id="responsive-navbar-nav">
                     <Nav className="mr-auto">
                     <Nav.Link as={Link} to="/">Home</Nav.Link>
-                    <Nav.Link as={Link} to="/appointment">Appointment</Nav.Link>
+                    <Nav.Link as={Link} to="/doctors">Doctors</Nav.Link>
                     </Nav>
                     <Nav>
                         {
-                            isLoggedIn
+                            isLogin()
                             ?
                             <Button variant="outline-danger" as={Link} to="/logout">
                                 Log Out
