@@ -16,7 +16,7 @@ const NavbarC = ({isLoggedIn}) => {
                     </Nav>
                     <Nav>
                         {
-                            isLogin()
+                            isLoggedIn
                             ?
                             <Button variant="outline-danger" as={Link} to="/logout">
                                 Log Out
