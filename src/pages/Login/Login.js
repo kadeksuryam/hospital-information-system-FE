@@ -1,12 +1,18 @@
+/* Libraries and Components */
 import axios from 'axios'
 import { useEffect, useState } from 'react'
-import { Form, Button, Toast, Spinner } from 'react-bootstrap'
+import { Form, Button, Spinner } from 'react-bootstrap'
 import { Link,  useHistory } from 'react-router-dom'
+import ErrorNotification from '../../components/ErrorNotification'
+
+/* Utility */
 import validator from '../../utils/validation'
 import { isLogin } from '../../utils/isLogin'
+
+/* Styles */
 import './Login.css'
 
-/* Field Error Finder */
+/* Fields Error Finder */
 const errorFinder = (form) => {
     const { email, password } = form
     const newErrors = {}
@@ -119,12 +125,9 @@ const Login = ({setIsLoggedIn}) => {
 
             <div className="login-form-container">
                 <Form noValidate className="login-form">
-                    <Toast show={toggleErrorBackend} style={{margin: '0 auto'}} onClose={handleToggleErrorBackend} delay={4000} autohide>
-                        <Toast.Header>
-                        <strong className="mr-auto" style={{color: 'red'}}>Error</strong>
-                        </Toast.Header>
-                        <Toast.Body>{errorBackend}</Toast.Body>
-                    </Toast>
+                    <ErrorNotification toggleError={toggleErrorBackend}
+                        handleToggleError={handleToggleErrorBackend} errorMsg={errorBackend}/>
+                        
                     {/* Email Field */}
                     <Form.Group controlId="formBasicEmail">
                         <Form.Label>Email</Form.Label>
