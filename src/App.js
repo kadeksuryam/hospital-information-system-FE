@@ -8,12 +8,18 @@ import Home from './pages/Home/Home.js'
 import Doctor from './pages/Doctor/Doctor.js'
 import PrivateRoute from './components/PrivateRoute'
 import PublicRoute from './components/PublicRoute'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import NotFound from './pages/NotFound/NotFound.js'
+import { isLogin } from './utils/isLogin.js'
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 
+  useEffect(() => {
+    if(isLogin()) setIsLoggedIn(true)
+
+  }, [])
+  
   return(
      <Router>
        <NavbarC isLoggedIn={isLoggedIn}/>

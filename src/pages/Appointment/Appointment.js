@@ -1,11 +1,12 @@
 import { useEffect } from 'react'
 import { useState } from 'react'
 import {Card, Button, Modal, Form} from 'react-bootstrap'
-import { useParams } from 'react-router-dom'
+import { useParams, useHistory } from 'react-router-dom'
 import "./Appointment.css"
 import axios from 'axios'
 
 const Appointment = () => {
+    const history  = useHistory()
     let { doctorID } = useParams()
     const [showEdit, setShowEdit] = useState(false)
     /*
@@ -25,7 +26,7 @@ const Appointment = () => {
     const [editFields, setEditFields] = useState({})
 
     const handleShowEdit = (idx) => {
-        setEditFields({"name" : appointments[idx].name, "desc" : appointments[idx].desc})
+        setEditFields({"name" : appointments[idx].appointmentName, "desc" : appointments[idx].desc})
     }
     const handleCloseEdit = () => setEditFields({})    
 
@@ -48,12 +49,17 @@ const Appointment = () => {
                 const headers = {
                     Authorization : 'Bearer ' + JWT_TOKEN
                 }
-                const res = await axios({method: 'get', url: URI, headers: headers})
-                
+                const res = await axios.get(URI, {headers: headers})
                 setAppointments(res.data)
-
             } catch(err){
-               console.log(err.message)
+               if(err.response){
+                   //console.log(err.response)
+                   if(err.response.status === 401){
+                       alert("Your session has expired. Please relogin!")
+                       history.push('/logout')
+                   }
+               }
+               else alert(err.message)
             }
         }
         getAppointments()
@@ -74,13 +80,13 @@ const Appointment = () => {
                     return (
                         <Card style={{ width: 'auto' }} className="appointment-list" key={index}>
                             <Card.Body>
-                                <Card.Title>{appointment.name}</Card.Title>
+                                <Card.Title>{appointment.appointmentName}</Card.Title>
                                 <Card.Text>
                                     { appointment.desc }
                                 </Card.Text>
 
                                 {/* Book the doctor */}
-                                <Button variant="primary">Book</Button>
+                                <Button variant="primary">Apply</Button>
 
                                 {/* Edit doctor - Admin Only */}
                                 <Button variant="primary" onClick={() => handleShowEdit(index)}>Edit</Button>
@@ -110,25 +116,6 @@ const Appointment = () => {
                                     </Button>
                                 </Modal.Footer>
                             </Modal>
-
-                            {/* List of Patients Window
-                            <Modal show={showPatients} onHide={() => handleClosePatients()}>
-                                <Modal.Header closeButton>
-                                    <Modal.Title>List of Patients</Modal.Title>
-                                </Modal.Header>
-                                <Modal.Body>
-                                    {doctor.patients.map((patient, pIdx) => {
-                                        return (
-                                            <p key={pIdx}>{patient}</p>
-                                        )
-                                    })}
-                                </Modal.Body>
-                                <Modal.Footer>
-                                <Button variant="secondary" onClick={() => handleClosePatients()}>
-                                    Close
-                                </Button>
-                                </Modal.Footer>
-                            </Modal> */}
                         </Card>
                 )})}
             </Card.Body>

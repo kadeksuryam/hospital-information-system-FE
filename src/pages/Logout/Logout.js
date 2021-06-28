@@ -6,7 +6,7 @@ const Logout = ({setIsLoggedIn}) => {
 
     useEffect(() => {
         localStorage.clear()
-        history.push('/')
+        history.push('/login')
         setIsLoggedIn(false)
     },[])
 
