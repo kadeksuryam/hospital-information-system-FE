@@ -11,15 +11,14 @@ const Appointment = () => {
     const [showEdit, setShowEdit] = useState(false)
     const [appointments, setAppointments] = useState([])
     const [editFields, setEditFields] = useState({})
+    //const [showSaveChanges, setShowSaveChanges] = useState(false)
 
     const handleShowEdit = (idx) => {
-        setEditFields({"name" : appointments[idx].appointmentName, "desc" : appointments[idx].desc})
+        setEditFields({"name" : appointments[idx].appointmentName, "desc" : appointments[idx].desc,
+            "mxPatients" : appointments[idx].maxAppointment})
     }
     const handleCloseEdit = () => setEditFields({})    
 
-    const handleSubmitEdit = () => {
-        // API calls
-    }
 
     const handleApply = async (appointmentID, index) => {
         const JWT_TOKEN = localStorage.getItem('JWT_token')
@@ -50,7 +49,6 @@ const Appointment = () => {
         }
 
     }
-
     useEffect(() => {
         if(Object.keys(editFields).length > 0)
             setShowEdit(true)
@@ -59,6 +57,7 @@ const Appointment = () => {
 
     useEffect(() => {
         //Fetch data first time from API
+        if(showEdit) return;
         const getAppointments = async () => {
             try{
                 const URI_Appointments = `http://192.168.1.24:5000/api/appointments?doctorID=${doctorID}`
@@ -94,14 +93,36 @@ const Appointment = () => {
             }
         }
         getAppointments()
-    }, [])
-
-    useEffect(() => {
-        if(!showEdit){
-           //Fetch data from API   
-        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [showEdit])
 
+
+    const isAdmin = () => (localStorage.getItem("userType") === "admin")
+
+    const handleSaveChanges = async (appointmentID) => {
+        try{
+            const URI_Edit_Appointment = `http://192.168.1.24:5000/api/appointments/${appointmentID}`
+            const { name, desc, mxPatients } = editFields
+            const payloads = {appointmentName: name, desc: desc, maxAppointment: mxPatients }   
+
+            //API REQUEST : PUT
+            const JWT_TOKEN = localStorage.getItem('JWT_token')
+            const headers = {
+                Authorization : 'Bearer ' + JWT_TOKEN
+            }
+            await axios.put(URI_Edit_Appointment , payloads, {headers: headers})
+        }
+        catch(err){
+            if(err.response){
+                //console.log(err.response)
+                if(err.response.status === 401){
+                    alert("Your session has expired. Please relogin!")
+                    history.push('/logout')
+                }
+            }
+            else alert(err.message)
+        }
+    }
 
     return (
         <Card style={{margin: '1rem'}}>
@@ -113,23 +134,37 @@ const Appointment = () => {
                             <Card.Body>
                                 <Card.Title>{appointment.appointmentName}</Card.Title>
                                 <Card.Text>
-                                    { appointment.desc }
+                                    About : { appointment.desc }
                                 </Card.Text>
-
-                                {/* Book the doctor */}
+                                <Card.Text>
+                                    Quota: { appointment.cntAppointment } / {appointment.maxAppointment}
+                                </Card.Text>
                                 {
-                                    (!appointment.isApplied)
-                                    ?
-                                        <Button variant="primary" 
-                                        onClick={() => handleApply(appointment._id, index)}>Apply</Button>
-                                    :
-                                    <Button variant="primary" 
-                                        onClick={() => handleApply(appointment._id, index)}>Cancel</Button>
+                                    (
+                                        () => {
+                                            if(isAdmin()){
+                                                return(
+                                                    <>
+                                                     <Button variant="primary" 
+                                                            onClick={() => handleShowEdit(index)}>Edit</Button>
+                                                     <Button variant="primary" 
+                                                            onClick={() => handleShowEdit(index)}>List of Patients</Button>
+                                                    </>
+                                                )
+                                            }
+                                            else{
+                                               if(!appointment.isApplied){
+                                                return <Button variant="primary"
+                                                     onClick={() => handleApply(appointment._id, index)}>Apply</Button>
+                                               }
+                                               else{
+                                                   return <Button variant="primary" 
+                                                   onClick={() => handleApply(appointment._id, index)}>Cancel</Button>
+                                               }
+                                            }
+                                        }
+                                    )()
                                 }
-
-                                {/* Edit doctor - Admin Only */}
-                                <Button variant="primary" onClick={() => handleShowEdit(index)}>Edit</Button>
-                        
                             </Card.Body>
 
                             {/* Edit Window */}
@@ -141,16 +176,21 @@ const Appointment = () => {
                                     <Form.Group controlId="appointmentNameField">
                                         <Form.Label>Appointment's Name</Form.Label>
                                         <Form.Control type="text" defaultValue={editFields.name} 
-                                            onChange={e => setEditFields("name", e.target.value)}/>
+                                            onChange={e => setEditFields({...editFields, "name" : e.target.value})}/>
                                     </Form.Group>
                                     <Form.Group controlId="appointmentDescField">
                                         <Form.Label>Descriptions</Form.Label>
                                         <Form.Control as="textarea" defaultValue={editFields.desc}
-                                            onChange={e => setEditFields("desc", e.target.value)} />
+                                            onChange={e => setEditFields({...editFields, "desc" : e.target.value})} />
+                                    </Form.Group>
+                                    <Form.Group controlId="appointmentDescField">
+                                        <Form.Label>Max Patients</Form.Label>
+                                        <Form.Control type="number" defaultValue={editFields.mxPatients}
+                                            onChange={e => setEditFields({...editFields, "mxPatients" : parseInt(e.target.value)})} />
                                     </Form.Group>
                                 </Modal.Body>
                                 <Modal.Footer>
-                                    <Button variant="primary" onClick={() => handleCloseEdit()}>
+                                    <Button variant="primary" onClick={() => handleSaveChanges(appointment._id)}>
                                         Save Changes
                                     </Button>
                                 </Modal.Footer>
