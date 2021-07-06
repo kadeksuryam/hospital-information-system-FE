@@ -7,7 +7,7 @@ const NavbarC = ({isLoggedIn}) => {
     return(
         <Navbar sticky="top" collapseOnSelect expand="sm" bg="dark" variant="dark">
             <Container fluid>
-                <Navbar.Brand as={Link} to='/'>Hospital Service</Navbar.Brand>
+                <Navbar.Brand as={Link} to='/'>HIS</Navbar.Brand>
                 <Navbar.Toggle aria-controls="responsive-navbar-nav" />
                 <Navbar.Collapse id="responsive-navbar-nav">
                     <Nav className="mr-auto">
