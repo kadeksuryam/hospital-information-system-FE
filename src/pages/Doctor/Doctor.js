@@ -88,7 +88,7 @@ const Doctor = ({checkIsLoggedIn}) => {
                                 </Card.Text>
 
                                 {/* Book the doctor */}
-                                <Button variant="primary" as={Link} to={`/appointments/${doctor._id}`}>
+                                <Button variant="primary" as={Link} to={`/doctors/${doctor._id}/appointments`}>
                                     {'>'}{'>'} Available Appointment</Button>
                             </Card.Body>
                         </Card>
