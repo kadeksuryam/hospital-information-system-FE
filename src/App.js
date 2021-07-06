@@ -11,6 +11,7 @@ import PublicRoute from './components/PublicRoute'
 import { useEffect, useState } from 'react'
 import NotFound from './pages/NotFound/NotFound.js'
 import { isLogin } from './utils/isLogin.js'
+import ListPatients from './pages/ListPatients/ListPatients.js'
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -25,11 +26,15 @@ const App = () => {
        <NavbarC isLoggedIn={isLoggedIn}/>
        <Switch>
           <PublicRoute restricted={false} component={Home} exact path="/" />
+          <PrivateRoute component={Appointment} path="/doctors/:doctorID/appointments" />
           <PublicRoute restricted={false} component={Doctor} path="/doctors" />
-          <PrivateRoute component={Appointment} path="/appointments/:doctorID" />
+
+          <PrivateRoute component={ListPatients} path="/appointments/:appointmentID/patients" />
+
           <PublicRoute restricted={true} component={Login} setIsLoggedIn={setIsLoggedIn} path="/login"/>
           <PublicRoute restricted={false} component={Logout}  setIsLoggedIn={setIsLoggedIn} path="/logout" />
           <PublicRoute restricted={true} component={Signup} path="/signup" setIsLoggedIn={setIsLoggedIn} />
+          
           <PublicRoute restricted={false} component={NotFound} path="*" />
        </Switch>
      </Router>    
